@@ -1,0 +1,95 @@
+<style>
+
+.counties {
+  fill: none;
+}
+
+.states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+
+.q0-9 { fill:rgb(247,251,255); }
+.q1-9 { fill:rgb(224,230,246); }
+.q2-9 { fill:rgb(198,219,239); }
+.q3-9 { fill:rgb(158,202,225); }
+.q4-9 { fill:rgb(107,174,214); }
+.q5-9 { fill:rgb(66,146,198); }
+.q6-9 { fill:rgb(33,113,181); }
+.q7-9 { fill:rgb(8,81,156); }
+.q8-9 { fill:rgb(4,40,120); }
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = parseInt(640),
+    height = parseInt(480);
+
+
+var state_ids = {'Alabama': 1, 'Alaska': 2, 'Arizona': 4, 'Arkansas': 5, 'California': 6, 
+    'Colorado': 8, 'Connecticut': 9, 'Delaware': 10, 'District of Columbia': 11, 
+    'Florida': 12, 'Georgia': 13, 'Hawaii': 15, 'Idaho': 16, 'Illinois': 17, 
+    'Indiana': 18, 'Iowa': 19, 'Kansas': 20, 'Kentucky': 21, 'Louisiana': 22, 'Maine': 23, 
+    'Maryland': 24, 'Massachusetts': 25, 'Michigan': 26, 'Minnesota': 27, 
+    'Mississippi': 28, 'Missouri': 29, 'Montana': 30, 'Nebraska': 31, 'Nevada': 32, 
+    'New Hampshire': 33, 'New Jersey': 34, 'New Mexico': 35, 'New York': 36, 
+    'North Carolina': 37, 'North Dakota': 38, 'Ohio': 39, 'Oklahoma': 40, 
+    'Oregon': 41, 'Pennsylvania': 42, 'Rhode Island': 44, 'South Carolina': 45, 
+    'South Dakota': 46, 'Tennessee': 47, 'Texas': 48, 'Utah': 49, 'Vermont': 50, 
+    'Virginia': 51, 'Washington': 53, 'West Virginia': 54, 'Wisconsin': 55, 'Wyoming': 56}
+
+var rateById = d3.map();
+
+var quantize = d3.scale.quantize()
+    .domain([0, 100])
+    .range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
+
+var quantize_reversed = d3.scale.quantize()
+    .domain([0, 100])
+    .range(d3.range(9).map(function(i) { return "q" + (8-i) + "-9"; }));
+
+var projection = d3.geo.albersUsa()
+    .scale(width*1.33333)
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.selection().append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+
+queue()
+    .defer(d3.json, "https://s3.amazonaws.com/d3recipes/us.json")
+    .await(ready);
+
+function ready(error, us) {
+    var Gdata = [["Alabama", 26], ["Alaska", 19], ["Arizona", 33], ["Arkansas", 61], ["California", 44], ["Colorado", 33], ["Connecticut", 4], ["Delaware", 65], ["Florida", 79], ["Georgia", 23], ["Hawaii", 7], ["Idaho", 15], ["Illinois", 69], ["Indiana", 27], ["Iowa", 97], ["Kansas", 92], ["Kentucky", 84], ["Louisiana", 95], ["Maine", 32], ["Maryland", 35], ["Massachusetts", 24], ["Michigan", 80], ["Minnesota", 36], ["Mississippi", 92], ["Missouri", 75], ["Montana", 46], ["Nebraska", 32], ["Nevada", 11], ["New Hampshire", 58], ["New Jersey", 79], ["New Mexico", 3], ["New York", 43], ["North Carolina", 70], ["North Dakota", 97], ["Ohio", 79], ["Oklahoma", 78], ["Oregon", 89], ["Pennsylvania", 16], ["Rhode Island", 85], ["South Carolina", 13], ["South Dakota", 56], ["Tennessee", 68], ["Texas", 76], ["Utah", 63], ["Vermont", 74], ["Virginia", 66], ["Washington", 39], ["West Virginia", 4], ["Wisconsin", 74], ["Wyoming", 49]];
+    for (var i=0; i<Gdata.length; i++) {
+      rateById.set(parseInt(state_ids[Gdata[i][0]]), Gdata[i][1]);
+    }
+  
+  if (false) {
+    quantize = quantize_reversed;
+  }
+  
+  svg.append("g")
+      .attr("class", "states")
+    .selectAll("path")
+      .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+      .attr("class", function(d) { return quantize(rateById.get(d.id)); })
+      .attr("d", path);
+
+  svg.append("path")
+      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "states")
+      .attr("d", path);
+}
+
+d3.select(self.frameElement).style("height", height + "px");
+</script>

@@ -1,0 +1,201 @@
+/* Ocean Five palette: 00A0B0, 6A4A3C, CC333F, EB6841, EDC951 */
+
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,700);
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100,900);
+
+body { font-family: "Open Sans", sans-serif !important; margin: 0; font-size: 14px !important; line-height: 1.5 !important; color: #333;
+}
+
+a:hover, a:focus { text-decoration: none; }
+
+/* modify bootstrap container-fluid slightly */
+.container-fluid-full {
+    padding:0;
+}
+
+/* My CSS starts here */
+.banner {
+    width:100%;
+    background:#fff;
+    /*box-shadow: 0px -5px 0px #CC333F inset;*/
+    color:#f0f0f0;
+    text-align:left;
+    font-family:Glegoo, sans-serif;
+    margin:0px;
+}
+.banner h3 {
+    padding:0px 0px 20px 0px;
+    font-size:19px;
+}
+
+.banner .bannerbuttons {
+    padding:1em 0 0 0;
+}
+
+.banner .bannerbutton {
+    font-family:"Alte Haas Grotesk", sans-serif;
+    font-size:150%;
+    color:#00A0B0;
+    cursor:pointer;
+    display:block;
+}
+
+.banner>.logo {
+    font-family:"Alte Haas Grotesk", serif;
+    font-size:60px;
+}
+.banner .logo1 {
+    color:#CC333F;
+}
+.banner .logo2 {
+    color:#00A0B0;
+}
+
+/*
+.btn-xlarge {
+    padding: 18px 28px;
+    font-size: 22px;
+    line-height: normal;
+    -webkit-border-radius: 8px;
+       -moz-border-radius: 8px;
+            border-radius: 8px;
+}
+
+.btn-xxlarge {
+    padding: 36px 56px;
+    font-size: 44px;
+    line-height: normal;
+    -webkit-border-radius: 16px;
+       -moz-border-radius: 16px;
+            border-radius: 16px;
+}
+*/
+
+
+.smalllogo {
+    width:60px;
+    height:52px;
+    position:absolute;
+    left:18px;
+    top:15px;
+}
+
+.textarea {
+    font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+}
+
+.errors {
+    padding:0px 0px 8px 5px;
+    color:#cc0000;
+}
+
+.imageholder {
+    margin: 0 auto 0 auto;
+    text-align:center;
+}
+.imageholder>object {
+    border:1px solid #AAAAAA;
+    background-color:#fff;
+}
+
+.imageholder>span {
+    display:inline-block;
+    margin:5px 5px 5px 5px;
+}
+
+#me_footer {
+    padding:2em 0 1em 0;
+    text-align:center;
+}
+
+.help {
+    box-shadow: 0px -5px 0px #CC333F inset;
+}
+.help>div {
+    margin:1em 0 0em 2em;
+    padding: 0 0 1em 0; /* margin doesn't work */
+}
+
+.about {
+    box-shadow: 0px -5px 0px #CC333F inset;
+}
+.about>div {
+    margin:1em 0 0em 2em;
+    padding: 0 0 1em 0; /* margin doesn't work */
+}
+
+.savedmessage {
+    margin:5px 0 5px 0;
+    font-size:100%;
+}
+.codeoptions {
+    margin:5px 0 0 0;
+}
+.codeoptions input {
+    margin:0 0 0 5px;
+}
+.codetext {
+    margin:5px 2px 5px 2px;
+}
+.gallery .code span {
+    display:inline-block;
+}
+
+iframe {
+    position:relative;
+    top:10px;
+}
+
+.spinning {
+    animation: spin 1s infinite linear;
+    -webkit-animation: spin2 1s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+#editor_holder {
+  position:relative;
+}
+#editor { 
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width:100%;
+  height:100%;
+}
+
+
+.btn:focus {
+    outline:none;
+}
+
+.displaynone {
+    display:none;
+}
+/* add a bit of space under a row */
+.wbr {
+    display:block;
+    margin:0 0 .5em 0;
+}
+.wbr2 {
+    display:block;
+    margin:0 0 1em 0;
+}
+
+#gitkitnavbar {
+    padding:1em 0 0 0;
+}
+.gitkit-user-card-menuitem {
+    z-index:1000; /* fix hover bug */
+    position:relative; /* fix hover bug */
+}

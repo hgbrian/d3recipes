@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="chart recipes">
+    <meta name="keywords" content="d3,d3js,d3.js,charts,recipes,graph,cookbook">
+    
+    <title>Chart Recipes :: {{mode}}</title>
+    
+    <script src="js/jquery.min.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-select.min.js"></script>
+    <script src="js/master.js"></script>
+    
+    <!-- css -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="css/master.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/fonts.css">
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      
+      // FIXFIX get GA
+      //ga('create', 'UA-32452516-12', 'auto');
+      //ga('send', 'pageview');
+    </script>
+
+    <!-- Google Identity Toolkit https://developers.google.com/identity-toolkit/v3/setup-frontend -->
+    <!-- debug: src="//www.gstatic.com/authtoolkit/js/gitkit-debug.js"> -->
+    <script type="text/javascript" src="//www.gstatic.com/authtoolkit/js/gitkit.js"></script>
+    <link type=text/css rel=stylesheet href="//www.gstatic.com/authtoolkit/css/gitkit.css" />
+    <script type=text/javascript>
+      window.google.identitytoolkit.signInButton(
+        '#gitkitnavbar', // accepts any CSS selector
+        {
+          widgetUrl: "{{server}}/oauth2callback",
+          signOutUrl: "/",
+        }
+      );
+    </script>
+
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Ocean Five palette: 00A0B0, 6A4A3C, CC333F, EB6841, EDC951 -->
+<style>
+.user_recipes_container {
+}
+.most_recent_recipes_container, .most_liked_recipes_container,
+.liked_recipes_container, .search_recipes_container {
+    display:none;
+}
+.user_recipes, .most_recent_recipes, .most_liked_recipes, .liked_recipes, .search_recipes {
+   display:flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+   justify-content: flex-start;
+}
+.subbanner {
+  color: #444444;
+  padding: 15px 0 15px 35px;
+  /* background-color: #0f9d58; */
+  box-shadow: 0px 1px 4px rgba(0,0,0,.3);
+  -webkit-font-smoothing: antialiased;
+  font-size: 220%;
+  font-family: Open Sans,sans-serif;
+  font-weight: 300;
+}
+.item {
+    margin:0px 20px 30px 20px;
+    border-radius: 5px;
+    color:#666;
+    border: 1px solid #ddd;
+    width:240px;
+    height:360px;
+}
+.item:hover {
+    background-color:#fafafa;
+}
+.item>.inner {
+    padding:20px;
+
+    height:360px;
+    overflow-y:hidden;
+    width:100%;
+}
+.item>.inner>.imageholder {
+    width:200px;
+    height:200px;
+    display:table-cell;
+    vertical-align:middle;
+}
+.item h3, .item h4 {
+    color:#6A4A3C;
+    max-width:75%;
+}
+.item h4 {
+    font-size:90%;
+}
+.item img {
+}
+
+.h3row {
+    width:100%;
+    position:relative;
+}
+.heart {
+    font-size: 125%;
+    color:#CC333F;
+    white-space: nowrap;
+    position: absolute;
+    left: 170px;
+    top: -20px;
+}
+.heart>span {
+    position:relative;
+    top:-4px;
+    left:2px;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<body>
+<!--{{userstr}}-->
+
+{% include "banner.html" %}
+
+
+
+
+<div class="main container-fluid container-fluid-full">
+
+    <div class="search_recipes_container">
+        <div class="subbanner wbr2">SEARCH RESULTS</div>
+        <div class="search_recipes"></div>
+    </div>
+
+    <div class="user_recipes_container">
+        <div class="subbanner wbr2">MY RECIPES</div>
+        <div class="user_recipes">
+
+            <a class="item" href="/edit#new">
+            <div class="inner">
+            <div class="imageholder"><img width="80px" src="static/img/plus_sign.png" /></div>
+
+            <div class="h3row">
+            <h3 style="display:inline;">New recipe</h3>
+            </div>
+            <h4>Start your own recipe.</h4>
+            </div>
+            </a>
+
+        </div>
+    </div>
+    
+    <div class="liked_recipes_container">
+        <div class="subbanner wbr2">RECIPES I LIKE</div>
+        <div class="liked_recipes"></div>
+    </div>
+
+    <div class="most_liked_recipes_container">
+        <div class="subbanner wbr2">MOST LIKED RECIPES</div>
+        <div class="most_liked_recipes"></div>
+    </div>
+    
+    <div class="most_recent_recipes_container">
+        <div class="subbanner wbr2">MOST RECENT RECIPES</div>
+        <div class="most_recent_recipes"></div>
+    </div>
+</div>
+
+<img id="no_thumbnail_available" style="display:none;" width="200" height="200" title="" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2hpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDowMTgwMTE3NDA3MjA2ODExODIyQUMzMDU3NTBFNDBFMSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo3NUY1RDE2QUJFQzAxMUU0QkNFOURBRDc1MkY2OTdGOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3NUY1RDE2OUJFQzAxMUU0QkNFOURBRDc1MkY2OTdGOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M2IChNYWNpbnRvc2gpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MDI4MDExNzQwNzIwNjgxMTgyMkFDMzA1NzUwRTQwRTEiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MDE4MDExNzQwNzIwNjgxMTgyMkFDMzA1NzUwRTQwRTEiLz4gPC9yZGY6RGVzY3Jp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" />
+
+<!-- -------------------------- footer  ---------------------------------------------- -->
+{% include "footer.html" %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+var search_recipes = {{search_recipes_json|safe}};
+var user_recipes = {{user_recipes_json|safe}};
+var liked_recipes = {{liked_recipes_json|safe}};
+var most_recent_recipes = {{most_recent_recipes_json|safe}};
+var most_liked_recipes = {{most_liked_recipes_json|safe}};
+var recipe_id;
+
+
+function fill_in_recipes(recipes, rname) {
+    _.each(recipes, function(el, ix) {
+        if (el != null) {
+            var thumbnail = el.thumbnail;
+            if (thumbnail == '') {
+                // thumbnail
+                thumbnail = $("#no_thumbnail_available").attr("src");
+            }
+            
+            $("."+rname+"_container").show();
+            
+            var meta = JSON.parse(el.meta);
+            $(".main ."+rname).append(
+                '<a class="item" href="recipe/'+meta.recipe_id+'">' +
+                '<div class="inner">' +
+                '<div class="imageholder">' +
+                '<img src="'+thumbnail+'" />' +
+                '</div>' +
+                '<div class="h3row">' +
+                '<h3 style="display:inline;">'+meta.recipe_title+'</h3>' +
+                '<span class="heart">' +
+                get_svg_heart("#CC333F") + '<span>' + el.num_likes + '</span>' +
+                '</span>' +
+                '</div>' +
+                '<h4>'+meta.recipe_description+'</h4>' +
+                '</div>' +
+                '</a>');
+        }
+    });
+    
+    $(".user_recipes a.item:first").attr("href", "edit/"+get_recipe_id()+"#new");
+}
+
+(function() {
+
+    if (window.location.href.endsWith("#signedin")) {
+        var redirect_url = localStorage.getItem('redirect_url');
+        console.log("redirect_url", redirect_url);
+        if (redirect_url != null) {
+            localStorage.setItem('redirect_url', null);
+            window.location.href = redirect_url;
+        }
+    }
+    else {
+
+        fill_in_recipes(search_recipes, "search_recipes");
+        fill_in_recipes(user_recipes, "user_recipes");
+        fill_in_recipes(liked_recipes, "liked_recipes");
+        fill_in_recipes(most_liked_recipes, "most_liked_recipes");
+        fill_in_recipes(most_recent_recipes, "most_recent_recipes");
+
+        console.log("cookie", document.cookie);
+    }
+
+})();
+</script>
+
+
+
+  </body>
+</html>

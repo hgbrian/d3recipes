@@ -1,0 +1,68 @@
+<div class="banner container-fluid container-fluid-full">
+    <span class="logo col-md-6">
+        <a href="/"><span class="logo1">1234</span> <span class="logo2">CHARTS</span></a>
+    </span>
+
+    <span class="bannerbuttons col-md-2">
+
+        <div class="input-group searchbox">
+          <input type="text" class="form-control" placeholder="Search for a recipe...">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button"><i class="glyphicon glyphicon-search"></i></button>
+          </span>
+        </div>
+        
+        <div class="message"></div>
+
+<!--
+        <span class="bannerbuttons col-md-6">
+            <a class="bannerbutton browsebutton">browse</a>
+        </span>
+        <span class="bannerbuttons col-md-6">
+            <a class="bannerbutton helpbutton">help</a>
+        </span>
+-->
+    </span>
+    <span class="col-md-1"></span>
+    <span class="col-md-3">
+        <div id="gitkitnavbar"></div>
+    </span>
+</div>
+
+<div class="help" style="display:none;">
+    <div class="helptext">
+    Enter your chart drawing code below.<br/>
+    You can include user-changeable parameters and access them as G.<parameter>:
+    <ul>
+    <li>G.W: width of the image</li>
+    <li>G.H: height of the image</li>
+    </ul>
+    </div>
+</div>
+
+<div class="about" style="display:none;">
+    <div class="abouttext">
+    1234 charts is a chart website where you dump your data and charts appear. 
+    </div>
+</div>
+
+<script>
+
+function do_search(val) {
+    var params_obj = {searchquery: val};
+    var params_str = $.param( params_obj );
+    location.href = "{{server}}/search?"+params_str;
+}
+
+$(".searchbox button").on('click', function (e) {
+    // Do something
+    do_search($(".searchbox input").val());
+});
+
+$(".searchbox input").on('keyup', function (e) {
+    if (e.keyCode == 13) { // enter
+        do_search($(this).val());
+    }
+});
+
+</script>

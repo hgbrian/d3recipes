@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="chart recipes">
+    <meta name="keywords" content="d3,d3js,d3.js,charts,recipes,graph,cookbook">
+    
+    <title>Chart Recipes :: {{mode}}</title>
+    
+    <script src="js/jquery.min.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-select.min.js"></script>
+    <script src="js/spectrum.js"></script>
+    
+    <script src="js/jszip.min.js"></script>
+    <script src="js/upload.js"></script>
+    <script src="js/master.js"></script>
+    
+    <!-- editor -->
+    <script src="js/ace-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    
+    <!-- spreadsheet -->
+    <script src="js/handsontable.full.min.js"></script>
+    <script src="js/jqueryHandsontable.js"></script>
+    <link rel="stylesheet" href="css/handsontable.full.css">
+    
+    <!-- css -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="css/spectrum.css">    
+    <link rel="stylesheet" href="css/master.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/fonts.css">
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      
+      // FIXFIX get GA
+      //ga('create', 'UA-32452516-12', 'auto');
+      //ga('send', 'pageview');
+    </script>
+
+    <!-- Google Identity Toolkit https://developers.google.com/identity-toolkit/v3/setup-frontend -->
+    <!-- debug: src="//www.gstatic.com/authtoolkit/js/gitkit-debug.js"> -->
+    <script type="text/javascript" src="//www.gstatic.com/authtoolkit/js/gitkit.js"></script>
+    <link type=text/css rel=stylesheet href="//www.gstatic.com/authtoolkit/css/gitkit.css" />
+    <script type=text/javascript>
+      window.google.identitytoolkit.signInButton(
+        '#gitkitnavbar', // accepts any CSS selector
+        {
+          widgetUrl: "{{server}}/oauth2callback",
+          signOutUrl: "/",
+        }
+      );
+    </script>
+
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Ocean Five palette: 00A0B0, 6A4A3C, CC333F, EB6841, EDC951 -->
+<style>
+/* space under each row in the edit sheet properties modal */
+#header_modal .headerrows>div {
+    margin:0 0 .5em 0;
+}
+.modal-title {
+    font-family:"Alte Haas Grotesk", serif;
+    font-size:300%;
+    color:#6A4A3C;
+    margin:0 0 0 .5em;
+}
+/* save recipe modal */
+#saverecipe_modal table.recipe_details td {
+    vertical-align:top;
+    padding:.3em;
+}
+
+#edittitle_modal table.recipe_details td {
+    vertical-align:top;
+    padding:.3em;
+}
+
+
+table.fixed_row_col td {
+    padding:4px;
+}
+
+/* spreadsheet -- different in edit vs recipe mode */
+#sheet {
+    padding:0 0 5px 0; /* this fixes/helps with a layout issue */
+    overflow-x:scroll;
+    float:left;
+}
+.recipe #sheet {
+    margin:0 10px 0 0;
+    max-width:800px; 
+}
+
+#sheet .wrongcellvalue {
+    color:#ff3322;
+}
+
+#editor_holder {
+    /* height:720px; doesn't work, so i am using an inline style */
+}
+
+h2.recipe_title {
+}
+input.recipe_title {
+    text-align:left;
+}
+.recipe>.recipe_description {
+    max-width:60%;
+}
+
+.recipe_title_holder {
+    margin:15px 0 0 0;
+}
+
+.recipe .heart {
+    width:15%;
+    text-align:right;
+    font-size: 250%;
+    color:#CC333F;
+    white-space: nowrap;
+    margin:0 0 0 15%;
+
+    position:relative;
+    top:0px;
+}
+.recipe .heart>span {
+    position:relative;
+    top:-12px;
+    left:8px;
+}
+
+/* ------------------------- edit parameters styled ----------------------------------- */
+.edit .paramholder .title {
+    font-size:150%;
+    margin:0 0 .25em 0;
+}
+.edit #parameters>div {
+    white-space: nowrap;
+    /*margin:0.25em 0 .25em 0;*/
+}
+.edit #parameters input {
+    width:4em;
+}
+.edit #parameters>table {
+    vertical-align:middle;
+}
+.edit #parameters>table th {
+    color:#999;
+    font-style:italic;
+    font-weight:normal;
+    padding:0 0 .25em .25em;
+}
+.edit #parameters>table td {
+    padding:0 .4em .6em 0;
+    width:4.5em;
+}
+.edit #parameters .paramname {
+    height:2.4em;
+    width:8em;
+}
+.edit #parameters .paramval {
+    height:2.4em;
+    width:4em;
+}
+.edit #parameters input {
+    padding:.5em;
+}
+.edit #parameters .selectparamtype {
+    width:3em;
+}
+
+.edit #parameters .paramcheckbox {
+    border:1px solid #bbb;
+    width:2.4em;
+    height:2.4em;
+    vertical-align:middle;
+    text-align:center;
+    margin:0 auto 0 auto;
+    display:block;
+    cursor:pointer;
+}
+.edit #parameters .paramcheckbox div {
+    font-size:200%;
+    position:relative;
+    top:-.25em;
+    color:#6c6;
+}
+
+.edit .tdparamval {
+    text-align:center;
+}
+
+/* --------------- recipe params flexbox layout --------------------------------------- */
+.recipe #parameters {
+}
+.recipe #parameters .paramrow {
+  display: flex;
+  flex-direction: row;
+  margin:5px 0 0 0;
+}
+
+.recipe #parameters .paramname {
+  display:flex;
+  align-items: center;
+  justify-content: flex-end;
+  
+  width:50%;
+  height:50px;
+  
+  max-width:200px;
+}
+.recipe #parameters .paramname>span {
+  font-size:200%;
+  color:#444444;
+  padding:0 6% 0 0;
+}
+.recipe #parameters .paramval {
+  flex:1;
+
+  font-size:200%;
+  padding:0 0 0 10px;
+  width:50%;
+  height:50px;
+
+  max-width:160px; /* same as sp-replacer */
+}
+
+.recipe #parameters .paramcheckbox {
+    border:1px solid #bbb;
+    text-align:center;
+    cursor:pointer;
+}
+.recipe #parameters .paramcheckbox div {
+    font-size:200%;
+    position:relative;
+    top:-.35em;
+    color:#6c6;
+}
+
+/* i don't know how to size this */
+.recipe #parameters .sp-replacer {
+    height:50px;
+    width:50%;
+    max-width:160px; /* same as paramval */
+ 
+    cursor:pointer;
+    padding:0;
+    margin:0;
+}
+
+/* ------------------------ spectrum -------------------------------------------------- */
+.sp-replacer {
+    margin:0 auto 0 auto;
+    overflow:hidden;
+    cursor:pointer;
+    padding: 0px;
+    display:inline-block;
+    border:1px solid #bbb;
+    *zoom: 1;
+    *display: inline;
+    vertical-align: middle;
+    width:2.4em;
+    height:2.4em;
+}
+.sp-dd {
+    display:none;
+}
+.sp-preview {
+    position:relative;
+    border:0;
+    margin-right:0;
+    float:left;
+    z-index: 0;
+    width:100%;
+    height:100%;
+}
+
+.sp-container {
+    border:1px solid #bbb;
+    background-color:#fff;
+}
+.sp-container button {
+    background-image:none;
+    -webkit-background-image:none;
+    text-shadow:none;
+    background-color:#ffffff;
+}
+.sp-container button:hover {
+    background-image:none;
+    -webkit-background-image:none;
+    text-shadow:none;
+    background-color:#e6e6e6;
+}
+
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<body>
+<!-- {{is_recipe_owner}} {{userstr}} -->
+
+<!-- ------------------------------- Banner ------------------------------------------ -->
+{% include "banner.html" %}
+
+
+
+<div class="container">
+
+
+<!-- ------------------------- Images appear here ------------------------------------ -->
+
+{% if mode == "EDIT" %}
+<div class="col-md-12 imagerow wbr">
+    <div class="imageholder" style="display:none;"></div>
+</div>
+{% endif %}
+
+{% if mode == "RECIPE" %}
+<div class="col-md-12 imagerow wbr">
+    <div class="imageholder" style="display:none;"></div>
+</div>
+{% endif %}
+
+{% if mode == "GALLERY" %}
+<!-- FIXFIX no gallery yet -->
+<div class="gallery" style="width:100%;text-align:center;">
+    <div class="imageholder" style="margin:0 auto 0 auto;"></div>
+    <button class="btn showcode" style="display:none;">show code</button>
+    <div class="code" style="display:none;"></div>
+
+    <a style="display:none;" href="https://twitter.com/share" class="twitter-share-button" data-text="d3 recipe!" data-via="megafaunasoft" data-size="large" data-count="none" data-hashtags="d3recipes">Tweet</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+</div>
+{% endif %}
+
+<!-- ----------------- Recipe title below and desc below ----------------------------- -->
+
+{% if mode == "RECIPE" %}
+<div class="col-md-12 recipe recipe_title_holder wbr">
+<div style="float:left;width:67%">
+<h2 class="recipe_title">{{recipe_title}}</h2>
+</div>
+<div style="float:left;width:30%">
+<span class="heart"></span>
+</div>
+</div>
+{% endif %}
+
+{% if mode == "EDIT" %}
+<div class="col-md-12 edit wbr">
+<h2 class="recipe_title">{{recipe_title}}</h2>
+</div>
+{% endif %}
+
+
+{% if mode == "RECIPE" %}
+<div class="recipe col-md-12 wbr2">
+<h4 class="recipe_description">{{recipe_description}}</h4>
+</div>
+{% endif %}
+
+{% if mode == "EDIT" %}
+<div class="edit col-md-12 wbr2">
+<h4 class="recipe_description">{{recipe_description}}</h4>
+</div>
+{% endif %}
+
+<!-- ------------------------------ Buttons ------------------------------------------ -->
+
+<div class="row wbr2">
+<div class="col-md-12" style="">
+    <!-- dump any error information here -->
+    <div class="errors"></div>
+    
+    <button class="btn btn-lg btn-success makechart">
+        <span class="processing" style="display:none;"><span class="glyphicon glyphicon-refresh spinning"></span> processing...</span>
+        <span class="normal">make chart</span>
+    </button>
+    
+    <button class="edit   btn btn-lg btn-primary saverecipe">save this recipe</button>
+    <a class="recipe btn btn-lg btn-primary editrecipe">edit this recipe</a>
+    
+    <a class="downloadsvg" target="_blank" download="download.svg">
+        <button class="btn btn-primary btn-lg">
+            <span class="glyphicon glyphicon-download"></span> download SVG
+        </button>
+    </a>
+
+    <a class="downloadpng" target="_blank" download="download.png">
+        <button class="btn btn-primary btn-lg">
+            <span class="glyphicon glyphicon-download"></span> download PNG
+        </button>
+    </a>
+    
+    <button class="recipe btn btn-lg btn-danger likerecipe">
+        <span class="processing" style="display:none;"><span class="glyphicon glyphicon-refresh spinning"></span> processing...</span>
+        <span class="normal"><span class="glyphicon glyphicon-heart"></span> <span></span></span>
+    </button>
+    
+    <div class="spacer" style="height:5px;"></div>
+
+    <a class="openhtml" target="_blank">
+        <button class="edit btn btn-primary">open HTML</button>
+    </a>
+
+    <select class="recipetype selectpicker" data-width="auto" data-style="btn btn-primary">
+        <option value="html_svg_png" style="font-size:130%">HTML/JS -> SVG and PNG</option>
+        <option value="pov_png" style="font-size:130%">PovRay -> PNG</option>
+    </select>
+</div>
+</div>
+
+
+
+<!-- -------------------------------- editor ----------------------------------------- -->
+
+{% if mode == "EDIT" %}
+<div class="row edit wbr2">
+    <div class="col-md-8" id="editor_holder" style="height:720px;">
+        <div id="editor"></div>
+    </div>
+    
+    <div class="col-md-4 paramholder">
+        <div class="title">Parameters</div>
+        <div id="parameters"><table>
+        <tr><th>name</th><th>default</th><th>type</th></tr>
+        </table></div>
+        <button class="btn btn-sm btn-primary addG">add parameter</button>
+        <button class="btn btn-sm btn-primary remG">remove parameter</button>
+    </div>
+</div>
+{% endif %}
+
+{% if mode == "RECIPE" %}
+<div class="row recipe wbr">
+    <div class="col-md-8" id="editor_holder" style="height:720px;">
+        <div id="editor"></div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ---------------------------------- spreadsheet ---------------------------------- -->
+
+{% if mode == "EDIT" %}
+<div class="row wbr">
+<div class="col-md-8" id="sheet"></div>
+<div class="col-md-4">
+    <!-- spreadsheet buttons -->
+    <span class="spreadsheet_buttons">
+        <button class="edit btn btn-primary addrow wbr">add row</button>
+        <button class="edit btn btn-primary remrow wbr">remove row</button>
+        <button class="edit btn btn-primary addcol wbr">add column</button>
+        <button class="edit btn btn-primary remcol wbr">remove column</button>
+        <button class="edit btn btn-primary eheader wbr">edit data properties</button>
+    </span>
+</div>
+</div>
+{% endif %}
+
+
+{% if mode == "RECIPE" %}
+<!-- no grid here since i want the parameters to abut the sheet -->
+<div class="row recipe wbr">
+<div id="sheet"></div>
+<div>
+    <div id="parameters"></div>    
+</div>
+</div>
+</div>
+
+{% endif %}
+
+
+<!----------------------------- footer  ------------------------------------------------->
+{% include "footer.html %}
+
+
+</div>
+<!-- end of container -->
+
+
+<!----------------------- edit headers modal ------------------------------------------->
+<div class="modal fade" id="header_modal" tabindex="-1" role="dialog" aria-labelledby="header_modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>-->
+                <h4 class="modal-title">edit data properties</h4>
+            </div>
+            <div class="modal-body">
+                <div class="headerrows"></div>
+                
+                <div><table class="fixed_row_col">
+                <tr><td>Fixed number of rows</td><td><input class="fixed_row_checkbox" type="checkbox"></input></td></tr>
+                <tr><td>Fixed number of columns</td><td><input class="fixed_col_checkbox" type="checkbox"></input></td></tr>
+                </table>
+                </div>
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary saveheader" data-dismiss="modal">Save changes</button>
+            </div>
+      </div>
+    </div>
+</div>
+
+<!-------------------------- save recipe modal ------------------------------------------>
+<div class="modal fade" id="saverecipe_modal" tabindex="-1" role="dialog" aria-labelledby="saverecipe_modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>-->
+                <h4 class="modal-title">save recipe</h4>
+            </div>
+            <div class="modal-body">
+                <table class="recipe_details">
+                
+                <tr><td>Recipe title</td><td>
+                <input class="recipe_title" size=32></input></td></tr>
+                
+                <tr><td>Recipe description (optional)</td><td>
+                <textarea class="recipe_description" rows=3 cols=36></textarea></td></tr>
+
+                <tr><td>Thumbnail</td>
+                <td class="thumbnail"></td></tr>                
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary saverecipe_confirm">Save recipe</button>
+            </div>
+      </div>
+    </div>
+</div>
+
+<!-- ----------------------- edit title modal --------------------------------------- -->
+<div class="modal fade" id="edittitle_modal" tabindex="-1" role="dialog" aria-labelledby="edittitle_modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>-->
+                <h4 class="modal-title">edit title and description</h4>
+            </div>
+            <div class="modal-body">
+                <table class="recipe_details">
+                
+                <tr><td>Recipe title</td><td>
+                <input class="recipe_title" size=32></input></td></tr>
+                
+                <tr><td>Recipe description (optional)</td><td>
+                <textarea class="recipe_description" rows=3 cols=36></textarea></td></tr>
+                </table>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary edittitle_confirm" data-dismiss="modal">Save changes</button>
+            </div>
+      </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+//----------------------------------------------------------------------------------------
+//
+// Exhaustive state of the page:
+//   code is a string
+//   sheet_data is an array of arrays
+//   sheet_params are arrays
+//   {'code': '....',
+//    'sheet_data': [['a',1], ['b',2], ... ],
+//    'sheet_params':{'readonly_cols': ['readonly', 'editable'],
+//                    'column_types': ['string', 'numeric'],
+//                    'column_headers': ['state', 'val']
+//                   },
+//    'recipe_params':[['W',640,'number'], ... ]
+//   }
+//
+
+
+var state_json_b64 = "{{state_json_b64}}";
+var state;
+if (state_json_b64 !== '') {
+    state = JSON.parse(b64_to_text(state_json_b64));
+}
+
+var meta = JSON.parse({{meta_json|safe|default:'"{}"'}});
+
+var spreadsheet;
+var editor;
+
+var MODE = "{{mode|safe}}";
+var server = "{{server|safe}}";
+var DEBUG = true;
+var MAX_PARAMS = 1000;
+var THUMB_SIZE = 200;
+
+// http or https? https causes problems since it cannot request d3 (http)
+var S3_URL_UP = "{{S3_URL_UP|safe}}";
+var S3_URL_DN = "{{S3_URL_DN|safe}}";
+var recipe_id = '{{recipe_id|safe}}';
+var is_recipe_owner = {{is_recipe_owner}};
+var is_liked_recipe = {{is_liked_recipe}};
+var is_logged_in = {{is_logged_in}};
+
+//----------------------------------------------------------------------------------------
+// Utility functions
+//
+
+function b64_to_text(b64) {
+    // Turn hashed code into code...
+    var new_zip = new JSZip();
+    new_zip.load(b64, {base64:true});
+    var b64_text = new_zip.files["{{zipfilename}}"].asText();
+    return b64_text;
+}
+
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
+}
+
+function _ensure_http(url) {
+    if (url.startsWith("https://")) {
+        return "http://" + url.substring(8);
+    }
+    else if (url.startsWith("http://")) {
+        return url;
+    }
+    else {
+        alert("ERROR, URL is malformed. "+url);
+        throw "ERROR, URL is malformed. "+url;
+    }
+}
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------
+//
+// Banner buttons
+//
+
+$(".helpbutton").on('click', function(e) {
+    if ($(".about").is(":visible")) {
+        $(".about").slideUp();
+    }
+
+    if ($(".help").is(":visible")) {
+        $(".help").slideUp();
+    }
+    else {
+        $(".help").slideDown();
+    }
+});
+
+$(".aboutbutton").on('click', function(e) {
+    if ($(".help").is(":visible")) {
+        $(".help").slideUp();
+    }
+
+    if ($(".about").is(":visible")) {
+        $(".about").slideUp();
+    }
+    else {
+        $(".about").slideDown();
+    }
+});
+
+
+
+
+function test_chart_exists(s3_svg_url, s3_png_url, s3_html_url, try_n) {
+    var times = [1000, 1000, 1000, 1000, 1000, 3000, 3000, 5000, 5000, 5000, 10000, 10000, 10000, 10000];
+    if (try_n > times.length-1) {
+        alert("error, file does not exist");
+        return;
+    }
+    
+    var ttime = times[try_n];
+    
+    $.ajax({
+        url:s3_svg_url,
+        type:'HEAD', // had to be explicitly allowed in S3 CORS
+        error: function()
+        {
+            setTimeout(function(){ test_chart_exists(s3_svg_url, s3_png_url, s3_html_url, try_n+1) }, ttime);
+        },
+        success: function()
+        {
+            //file exists
+            console.log("chart exists on s3!");
+
+            $(".imageholder").show();
+            $(".downloadsvg").attr("href", s3_svg_url);
+            $(".downloadsvg").show();
+            $(".downloadpng").attr("href", s3_png_url);
+            $(".downloadpng").show();
+
+            // Why ensure http for open html only? It's complicated.
+            // The site is https, so s3 links have to be https. 
+            // Phantomjs can open http links, but s3 cannot.
+            $(".openhtml").attr("href", _ensure_http(s3_html_url));
+            $(".openhtml").show();
+            
+            $(".makechart>.normal").show();
+            $(".makechart>.processing").hide();
+            
+            // object or embed?
+            $(".imageholder").empty();
+            $(".imageholder").prepend('<object data="'+s3_svg_url+'" type="image/svg+xml" />')
+        }
+    });
+}
+
+//----------------------------------------------------------------------------------------
+// Compiling data into a recipe and vice versa
+//
+
+function set_state_local(_recipe_id, redirect_url) {
+    localStorage.setItem('state', JSON.stringify(compile_recipe_into_state()));
+    localStorage.setItem('meta', get_meta_json(_recipe_id));
+    if (redirect_url != null) {
+        localStorage.setItem('redirect_url', redirect_url);
+    }
+}
+
+function get_state_local() {
+    var _state = JSON.parse(localStorage.getItem('state'));
+    var _meta  = JSON.parse(localStorage.getItem('meta'));
+    var _redirect_url = localStorage.getItem('redirect_url');
+    return {state:_state, meta:_meta, redirect_url:_redirect_url}
+}
+
+$("#gitkitnavbar").on('mousedown', function(e) {
+    set_state_local(recipe_id, window.location.href);
+    return false; // not sure if this helps
+});
+
+
+
+
+function get_recipe_params() {
+    var params = [];
+    $.each($("#parameters .paramrow"), function(index, value) {
+        var paramname = $(".paramname", this).val();
+        if (paramname == undefined || paramname == "") { // recipe mode
+            paramname = $(".paramname", this).text().trim();
+        }
+        
+        if (paramname == "data") {
+            alert('Your parameters cannot use the reserved name "data"');
+            return null;
+        }
+        
+        var paramval;
+        if ($(".paramval", this).hasClass("paramcheckbox")) {
+            paramval = $(".paramval", this).prop("checked");
+        }
+        else {
+            paramval = $(".paramval", this).val().trim();
+        }
+        
+        var paramtype = $(".selectparamtype", this).val();
+        console.log(paramname, paramval, paramtype);
+
+        if (!isBlank(paramname)) {
+            params.push([paramname, paramval, paramtype]);
+        }
+    });
+    
+    console.log(params);
+    return params;
+}
+
+
+function make_html_from_recipe(recipe) {
+    //------------------------------------------------------------------------------------
+    // Jinja style html param replacing
+    //
+    // regex101.com
+    var re = /\{\{([^\r\n]+?)\}\}/g; 
+    var recipe_code = recipe.code;
+    var recipe_params = recipe.recipe_params;
+    recipe_params.push(["data", JSON.stringify(recipe.sheet_data), "data"]);
+    
+    var matches = [];
+
+    while ((m = re.exec(recipe_code)) != null) {
+        if (m.index === re.lastIndex) {
+            re.lastIndex++;
+        }        
+        matches.push([m[0], m[1]]);
+    }
+    
+    for (var i=0; i<matches.length; i++) {
+        var m = matches[i];
+        for (var j=0; j<recipe_params.length; j++) {
+            if (m[1].trim() == recipe_params[j][0]) {
+                if (recipe_params[j][2] == "text") {
+                    recipe_code = recipe_code.replace(m[0], '"'+encodeURI(recipe_params[j][1])+'"');
+                }
+                else if (recipe_params[j][2] == "number" || recipe_params[j][2] == "data") {
+                    recipe_code = recipe_code.replace(m[0], recipe_params[j][1]);
+                }
+                else if (recipe_params[j][2] == "checkbox") {
+                    // Use 0/1 for checkbox since it's more universal than js true/false
+                    var ival = recipe_params[j][1] ? 1 : 0;
+                    recipe_code = recipe_code.replace(m[0], ival);
+                }
+                else if (recipe_params[j][2] == "color") {
+                    // &#x23; &#35; http://www.fileformat.info/info/unicode/char/0023/index.htm
+                    // This will allow me to change colors on the fly?
+                    //recipe_code = recipe_code.replace(m[0], recipe_params[j][1].replace("#", "&#35;"));
+                    recipe_code = recipe_code.replace(m[0], recipe_params[j][1]);
+                }
+                else {
+                    throw "Illegal parameter type "+recipe_params[j][2];
+                }
+            }
+        }
+    }
+    
+    return recipe_code;
+}
+
+function compile_recipe_into_state() {
+    //------------------------------------------------------------------------------------
+    // turn all the relevant objects for the code, sheet, parameters into a JSON object
+    //
+    var recipe_params = get_recipe_params();
+    
+    // Get column headers directly from spreadsheet?
+    sheet_params.column_headers = spreadsheet.getColHeader();
+    var state = {
+        code : editor.getValue(),
+        sheet_data : spreadsheet.getData(),
+        sheet_params : sheet_params,
+        recipe_params : recipe_params
+    }
+    
+    // Save this to localStorage upon attempted login
+    console.log(JSON.stringify(state));
+    return state;
+}
+
+
+function make_chart_from_html(code, selector, title) {
+    if (!G_sheet_params.data_is_valid===true) {
+        $(".makechart>.processing").hide();
+        $(".makechart>.normal").show();
+        alert("There are some invalid values in the data table (marked in red)")
+        return;
+    }
+    
+    $(".errors").empty();
+    $(".downloadsvg").hide();
+    $(".downloadpng").hide();
+    $(".openhtml").hide();
+    
+    // set timeout so that spinner exists? FIXFIX remove
+    setTimeout(function() {    
+        try {
+            var all_html = make_html_from_recipe(compile_recipe_into_state());
+            
+            var chart_id;
+            if (MODE == "EDIT") {
+                chart_id = recipe_id;
+            }
+            else if (MODE == "RECIPE") {
+                chart_id = get_chart_id(); // new every time!
+            }
+            
+            UPLOAD.uploadHTML(chart_id, all_html);
+            var s3_svg_url = S3_URL_DN+"/"+chart_id+".svg";
+            var s3_png_url = S3_URL_DN+"/"+chart_id+".png";
+            var s3_html_url = S3_URL_UP+"/"+chart_id+".html";
+            
+            setTimeout(function(){ test_chart_exists(s3_svg_url, s3_png_url, s3_html_url, 0) }, 2000);
+        }
+        catch(e) {
+            console.log(e);
+            $(".errors").prepend("<div>ERROR: "+e+"</div>")
+        }
+        finally {
+            //$(".twitter-share-button").show();
+        }
+    }, 50);
+}
+
+$(".makechart").on('click', function(e) {
+    $(".makechart>.normal").hide();
+    $(".makechart>.processing").show();
+    make_chart_from_html(editor.getValue(), ".imageholder");
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------
+//
+// Recipe parameters
+//
+
+function add_param_edit(paramname, paramval, paramtype) {
+    var checked = {'text':'','number':'','checkbox':'','slider':'','color':''};
+    checked[paramtype] = 'selected';
+    
+    
+    if (paramname == null) {
+        paramname = '';
+        var all_paramnames = [];
+        $.each($(".edit #parameters .paramrow .paramname"), function(e) {
+            all_paramnames.push($(this).val());
+        });
+        
+        var default_paramname = "param"+(1).toString();
+        for (var i=2; i<MAX_PARAMS; i++) {
+            if (_.contains(all_paramnames, default_paramname)) {
+                default_paramname = "param"+(i).toString();
+            }
+            else {
+                paramname = default_paramname;
+                break;
+            }
+        }
+    }
+    
+    
+    var h = '<tr class="paramrow">' +
+            '<td><input class="paramname" value="'+paramname+'"></input></td>' +
+            '<td class="tdparamval">';
+    
+    if (paramtype == "text") {
+        h += '<input class="paramval" value="'+paramval+'"></input>';
+    }
+    else if (paramtype == "number") {
+        h += '<input class="paramval number" value="'+paramval+'"></input>';
+    }
+    else if (paramtype == "checkbox") {
+        h += '<div class="paramval paramcheckbox"><div>✓</div></div>';
+    }
+    else if (paramtype == "color") {
+        h += '<input class="paramval paramcolor" value="'+paramval+'"></input>';
+    }
+    h += '</td>';
+    
+    h += '<td><select class="selectparamtype selectpicker" data-width="8em">' +
+         '   <option value="text"'+checked['text']+'>text</option>' +
+         '   <option value="number"'+checked['number']+'>number</option>' +
+         '   <option value="checkbox"'+checked['checkbox']+'>checkbox</option>' +
+         '   <option value="slider"'+checked['slider']+'>slider</option>' +
+         '   <option value="color"'+checked['color']+'>color</option>' +
+         '</select></td>' +
+         '</tr>';
+    
+    $("#parameters>table").append(h);
+
+    if (paramtype == "checkbox") {
+        $(".edit #parameters div.paramval:last").prop("checked", paramval);    
+        if (paramval == false) {
+            $(".edit #parameters div.paramval:last>div").hide();
+        }
+    }
+    else if (paramtype == "color") {
+        $(".edit #parameters input.paramval:last").spectrum({color:paramval, preferredFormat: "hex"});
+    }
+    
+    $('.selectpicker').selectpicker('render');
+}
+
+
+function add_param_recipe(param) {
+    var paramname = param[0];
+    var paramval = param[1];
+    var paramtype = param[2];
+    var h;
+    
+    console.log(paramname, paramval, paramtype);
+    
+    var h = '<div class="paramrow">' +
+            '<div class="paramname"><span>'+paramname+'</span></div>';
+    
+    if (paramtype == "text") {
+        h += '<input class="paramval" value="'+paramval+'"></input>';
+    }
+    else if (paramtype == "number") {
+        h += '<input class="paramval number" value="'+paramval+'"></input>';
+    }
+    else if (paramtype == "checkbox") {
+        h += '<div class="paramval paramcheckbox"><div>✓</div></div>';
+    }
+    else if (paramtype == "color") {
+        h += '<input class="paramval paramcolor" value="'+paramval+'"></input>';
+    }
+    h += '<input class="selectparamtype displaynone" value="'+paramtype+'"></input>';
+    h += '</div>';
+    
+    $(".recipe #parameters").append(h);
+    
+    if (paramtype == "checkbox") {
+        $(".recipe #parameters div.paramval:last").prop("checked", paramval);    
+        if (paramval == false) {
+            $(".recipe #parameters div.paramval:last>div").hide();
+        }
+    }
+    else if (paramtype == "color") {
+        $(".recipe #parameters input.paramval:last").spectrum({color:paramval, preferredFormat: "hex"});
+    }
+}
+
+
+$(".addG").on('click', function(e) {
+    add_param_edit(null, '','text')    
+});
+
+$(".remG").on('click', function(e) {
+    $("#parameters tr:last").remove();
+});
+
+$("#parameters>table").on('change', ".selectparamtype", function(e) {
+    // When you select a new parameter type, then change the paramval input box
+    
+    var choice = $(this).val();
+    var $paramval = $(this).closest(".paramrow").children(".tdparamval");
+    
+    var oldval = $("input",$paramval).val();
+    if (oldval == null || oldval === true || oldval === false) { oldval = ''; }
+    
+    if (choice == "text") { 
+        $paramval.children().replaceWith('<input class="paramval" value="'+oldval+'"></input>');
+    }
+    else if (choice == "number") {
+        if (isNaN(oldval)) { oldval = ''; }
+        $paramval.children().replaceWith('<input class="paramval number" value="'+oldval+'"></input>');
+    }
+    else if (choice == "slider") {
+        $paramval.children().replaceWith('<div class="paramval"></div>');
+    }
+    else if (choice == "checkbox") {
+        $paramval.children().replaceWith('<div class="paramval paramcheckbox"><div>✓</div></div>');
+        $(">div", $paramval).prop("checked", true);
+    }
+    else if (choice == "color") {
+        $paramval.children().replaceWith('<input class="paramval paramcolor"></input>');
+        $(">input", $paramval).spectrum({color:"#ff0000", preferredFormat: "hex"});
+    }
+});
+
+$("#parameters").on('change', ".paramval", function(e) {
+    if ($(this).hasClass("number") && isNaN($(this).val())) {
+        alert("Only numeric values allowed");
+        $(this).val('');
+    } 
+});
+
+$("#parameters").on('click', ".paramcheckbox", function(e) {
+    var $checkmark = $("div", this);
+    
+    if ($checkmark.is(":visible")) {
+        $checkmark.hide();
+        $(this).prop("checked", false);
+    }
+    else {
+        $checkmark.show();
+        $(this).prop("checked", true);
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function get_meta_json(_recipe_id) {
+    var code_type = "html";
+    var recipe_title = $("#saverecipe_modal .recipe_title").val();
+    var recipe_description = $("#saverecipe_modal .recipe_description").val();
+    console.log("SAVING recipe_title", recipe_title);
+    
+    return JSON.stringify({recipe_id:_recipe_id, 
+                           recipe_title:recipe_title,
+                           recipe_description:recipe_description,
+                           code_type:code_type});
+}
+
+
+
+//----------------------------------------------------------------------------------------
+//
+// Save recipe, upload chart_id and code to Google
+//
+//
+function save_recipe(_recipe_id, state_json, thumbnail_data_url) {
+    // show save recipe modal
+    if (state_json.length ==  0) { alert("No recipe to save!"); return; }
+    
+    var zip = new JSZip();
+    zip.file("{{zipfilename}}", state_json, {binary : false, compression : "DEFLATE"});
+    var _state_json_b64 = zip.generate({type:"base64"})
+    
+    var _meta_json = get_meta_json(_recipe_id);
+    
+    $.post("/save",
+        {meta_json: _meta_json, 
+         state_json_b64: _state_json_b64,
+         thumbnail_data_url: thumbnail_data_url }, 
+        function(data) { // success
+            console.log(data);
+            if (data.status_code == 200) {
+                if (data.loggedin == 0) {
+                    alert("Sorry -- you need to log in to save your recipe!");
+                }
+                else {
+                    var recipe_url = data.recipe_url;
+                    console.log("recipe_url", recipe_url);
+            
+                    $(".imageholder").show();
+                    $(".message").html("Chart Recipe saved!" +
+                        " Find it at <a href='"+recipe_url+"'>"+recipe_url+"</a>")
+                }
+            }
+            else {
+                alert("Oops! We had an error: "+data.error);
+            }
+        }, 
+    "json");
+}
+
+function show_save_recipe_modal() {
+    //------------------------------------------------------------------------------------
+    // http://stackoverflow.com/questions/13674835/canvas-tainted-by-cross-origin-data
+    //
+    var png_url = $(".downloadpng").attr("href");
+    $("#saverecipe_modal .thumbnail").data("data_url", '')
+    
+    if (png_url != null && png_url.startsWith(S3_URL_DN)) {
+        $('#saverecipe_modal .thumbnail').html('<img crossorigin="anonymous" style="max-height: '+THUMB_SIZE+'px; max-width: '+THUMB_SIZE+'px" src="'+png_url+'" />');
+        
+        $("#saverecipe_modal .thumbnail>img").one("load", function() {
+            var img = this;
+            var scale = THUMB_SIZE / Math.max(img.width, img.height);
+            console.log(img.width, img.height, scale, w, h);
+            var w = Math.round(img.width*scale),
+                h = Math.round(img.height*scale);
+            
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            if (DEBUG) { $("body").append(canvas); }
+            
+            var context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0, w, h);
+            var data_url = canvas.toDataURL()
+            
+            // Update the modal image
+            $("#saverecipe_modal .thumbnail").data("data_url", data_url)
+            console.log("recipe data_url 1 ", data_url.length, data_url);
+
+            $('#saverecipe_modal').data("thumbnail", true);
+        });
+    }
+    else {
+        $('#saverecipe_modal .thumbnail').html('<div>(no thumbnail)</div>');
+        $('#saverecipe_modal').data("thumbnail", false);
+    }
+    
+    $('#saverecipe_modal').modal({});
+}
+
+
+$(".edit .recipe_title>span,.recipe_description>span").on('click', function() {
+    $("#edittitle_modal").modal({});
+});
+
+$(".edittitle_confirm").on('click', function() {
+    var _title = $("#edittitle_modal .recipe_title").val();
+    var _desc = $("#edittitle_modal .recipe_description").val();
+
+    if (_title != '') {
+        $(".recipe_title").text(_title);
+    }
+    if (_desc != '') {
+        $(".recipe_description").text(_desc);
+    }
+});
+
+$(".saverecipe").on('click', function() {    
+    show_save_recipe_modal();
+});
+
+$(".saverecipe_confirm").on('click', function() {
+    var recipe_title = $("#saverecipe_modal .recipe_title").val();
+    if (recipe_title == "" || recipe_title == undefined) {
+        alert("You must give your recipe a name first!")
+        return;
+    }
+    
+    if ($("#saverecipe_modal").data("thumbnail") == false) { 
+        alert("You must make a chart from your recipe first!")
+        return;
+    }
+    
+    var _recipe_id = get_recipe_id();
+    var state_json = JSON.stringify(compile_recipe_into_state());
+    var thumbnail_data_url =  $("#saverecipe_modal .thumbnail").data("data_url");
+    console.log("recipe data_url 2 ", thumbnail_data_url);
+    save_recipe(_recipe_id, state_json, thumbnail_data_url);
+    
+    $("#saverecipe_modal").modal("hide");
+});
+
+$(".likerecipe").on('click', function() {
+    $.post("/like",
+        {recipe_id:meta.recipe_id},
+        
+        function(data) {
+            console.log(data);
+            if (data.status_code == 200) {
+                if (data.like_change == 1) {
+                    $(".heart>span:last").text(data.num_likes);
+                    $(".likerecipe .normal>span:last").text("unlike this recipe");
+                    $(".message").html("You liked this recipe");
+                }
+                else if (data.like_change == -1) {
+                    $(".heart>span:last").text(data.num_likes);
+                    $(".likerecipe .normal>span:last").text("like this recipe");
+                    $(".message").html("You unliked this recipe");
+                }
+                else {
+                    throw "Bad response from server";
+                }
+            }
+            else {
+                // FIXFIX this just logs it when I am not logged in -- it doesn't tell me
+                throw data.error;
+            }
+        }, 
+    "json");
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------
+//
+// handsontable spreadsheet
+//
+//
+var G_sheet_params = {
+    all_param_types : {"text":true, "number":true, "checkbox":true, "color":true, "data":true},
+    all_col_types : {"numeric":true, "numeric100":true, "string":true},
+    all_readonly_types : {"readonly":true, "editable":true},
+    MAX_ROWS : 4096,
+    MAX_COLS : 256,
+    valueRenderer : null,
+    data_is_valid : null
+}
+
+var sheet_params = {
+    readonly_cols : [], /* e.g., ["readonly", "readonly", "editable"] */
+    column_types : [],  /* e.g., ["string", "numeric"] */
+    column_headers : [],  /* e.g., ["state", "val"] */
+    fixed_row_col : [] /* e.g., [0,1] */
+};
+
+
+
+
+
+
+
+function update_renderer() {
+    
+    return function(instance, td, row, col, prop, value, cellProperties) {
+      // Hotsheet for adding partially filled-in rows
+      var args = arguments;
+      
+      //-------------------------------
+      // Make readonly columns readonly
+      //
+      if (sheet_params.readonly_cols[col] === "readonly") {
+        cellProperties.readOnly = true;
+      }
+      else if (sheet_params.readonly_cols[col] === "editable") {
+        cellProperties.readOnly = false;
+      }
+      else if (sheet_params.readonly_cols[col] === undefined) {
+        cellProperties.readOnly = false;
+      }
+      else {
+        throw "Bad input. Wrong readonly type";
+      }
+      
+      //-----------------------------
+      // Make numeric columns numeric
+      //
+      if (_.contains(["numeric", "numeric100"], sheet_params.column_types[col]) && isNaN(value)) {
+        $(td).addClass('wrongcellvalue');
+        G_sheet_params.data_is_valid = false;
+        console.log("is_valid", G_sheet_params.data_is_valid);
+      }
+      else if (sheet_params.column_types[col] == "numeric100" && (value < 0 || value > 100)) {
+        $(td).addClass('wrongcellvalue');
+        G_sheet_params.data_is_valid = false;
+        console.log("is_valid", G_sheet_params.data_is_valid);
+      }
+      else {
+        $(td).removeClass('wrongcellvalue');
+      }
+      
+      // FIXFIX what does this do?
+      Handsontable.renderers.TextRenderer.apply(this, args);
+    }
+}
+
+
+function save_header() {
+    sheet_params.column_types = [];
+    sheet_params.readonly_cols = [];
+    sheet_params.fixed_row_col = [$("#header_modal .fixed_row_checkbox").prop("checked") ? 1 : 0,
+                                  $("#header_modal .fixed_col_checkbox").prop("checked") ? 1 : 0];
+    
+    console.log("fixed_row_col", $("#header_modal .fixed_row_checkbox").prop("checked"));
+
+    // FIXFIX This check is temporary while not all recipes have fixed_row_col
+    var max_rows, max_cols;
+    if (sheet_params.fixed_row_col == undefined) {
+        max_rows = G_sheet_params.MAX_ROWS;
+        max_cols = G_sheet_params.MAX_COLS;
+    }
+    else {
+        max_rows = sheet_params.fixed_row_col[0] ? state.sheet_data.length : G_sheet_params.MAX_ROWS;
+        max_cols = sheet_params.fixed_row_col[1] ? state.sheet_data[0].length : G_sheet_params.MAX_COLS;
+    }
+    
+    var column_headers = [];
+    
+    $.each($("#header_modal .headerrows>div"), function(index, vals) {
+        column_headers.push($("input.headerid", this).val());        
+        
+        var selected = $("select.columntype", this).val();
+        sheet_params.column_types.push(selected);
+        
+        // Column type cannot be used with array of arrays
+        //if (selected == "string") { selected = null; }
+        //new_colTypes.push({type:selected});
+        
+        // Read only?
+        var selected = $("select.readonly", this).val();
+        console.log("push", selected);
+        sheet_params.readonly_cols.push(selected);
+    });
+    
+    // example columns: [{type:'numeric'}, {type:'numeric'}]
+    // adding columns attr means you can't add new columns (needs to be array of array)
+    // so I probably need a custom validator
+    // columns: new_colTypes
+    spreadsheet.updateSettings({
+      colHeaders: column_headers,
+      maxRows: max_rows,
+      maxCols: max_cols
+    });
+    
+    // Update the readonly part. Maybe I should have a timeout here too?
+    G_sheet_params.valueRenderer = update_renderer();
+    spreadsheet.render();
+}
+
+$(".saveheader").on('click', function(e) {
+    save_header();
+});
+
+function edit_header() {
+    $("#header_modal .headerrows").empty();
+    var header_vals = spreadsheet.getColHeader();
+    
+    for (var i=0; i<header_vals.length; i++) {
+        var selected1 = {};
+        for (var col_type in G_sheet_params.all_col_types) {
+            console.log(col_type, sheet_params.column_types[i]);
+            selected1[col_type] = sheet_params.column_types[i] == col_type ? "selected" : "";
+        }
+        
+        var selected2 = {};
+        for (var ro_type in G_sheet_params.all_readonly_types) {
+            console.log("ro", ro_type, sheet_params.readonly_cols[i]);
+            selected2[ro_type] = sheet_params.readonly_cols[i] == ro_type ? "selected" : "";
+        }
+        
+        var row = '<div>' +
+            ' Column <input class="headerid" size=7 value="'+header_vals[i]+'"></input>' +
+            ' can hold <select class="columntype">' +
+            '<option value="string" ' + selected1['string']+'>any text</option>' +
+            '<option value="numeric" ' + selected1['numeric']+'>any number</option>' +
+            '<option value="numeric100" ' + selected1['numeric100']+'>numbers from 0 to 100</option>' +
+            '</select> and is ' + 
+            ' <select class="readonly">' +
+            '<option value="editable" ' + selected2['editable']+'>editable</option>' +
+            '<option value="readonly" ' + selected2['readonly']+'>read-only</option></select>' +
+            '</div>';
+        $("#header_modal .headerrows").append(row);
+    }
+    
+
+    $("#header_modal .fixed_row_col .fixed_row_checkbox").prop("checked", sheet_params.fixed_row_col[0]);
+    $("#header_modal .fixed_row_col .fixed_col_checkbox").prop("checked", sheet_params.fixed_row_col[1]);
+        
+    $('#header_modal').modal({});
+}
+
+$(".addrow").on('click', function(e) {
+    spreadsheet.alter ('insert_row');    
+});
+
+$(".remrow").on('click', function(e) {
+    spreadsheet.alter('remove_row');
+});
+
+$(".addcol").on('click', function(e) {
+    // insert_col seems buggy, hence this bit
+    var oldColHeader = spreadsheet.getColHeader();    
+    console.log(oldColHeader);
+    spreadsheet.alter ('insert_col');
+    spreadsheet.updateSettings({
+      colHeaders: oldColHeader
+    });
+    
+    setTimeout(function() { console.log(spreadsheet.getColHeader()) }, 100);
+});
+
+$(".remcol").on('click', function(e) {
+    // remove_col seems buggy, hence this bit
+    var oldColHeader = spreadsheet.getColHeader();
+    spreadsheet.alter ('remove_col');
+    spreadsheet.updateSettings({
+      colHeaders: oldColHeader
+    });
+});
+
+$(".eheader").on('click', function(e) {
+    edit_header();
+});
+
+$(".readcol").on('click', function(e) {
+    // sel format [row1,col1,row2,col2]    
+    var sel = spreadsheet.getSelected();
+    if (sel == undefined) {
+        alert("No column selected");
+        return;
+    }
+    
+    for (var i=sel[1]; i<sel[3]+1; i++) {
+        sheet_params.readonly_cols[i] = true;
+    }
+    
+    G_sheet_params.valueRenderer = update_renderer();
+    spreadsheet.render();
+});
+
+$(".writcol").on('click', function(e) {
+    // sel format: [row1,col1,row2,col2]
+    var sel = spreadsheet.getSelected();
+    if (sel == undefined) {
+        alert("No column selected");
+        return;
+    }
+
+    for (var i=sel[1]; i<sel[3]+1; i++) {
+        sheet_params.readonly_cols[i] = false;
+    }
+    
+    G_sheet_params.valueRenderer = update_renderer();
+    spreadsheet.render();
+});
+
+function make_spreadsheet(sheet_data, column_headers, column_types, readonly_cols, fixed_row_col) {
+    sheet_params.column_types = column_types;
+    sheet_params.readonly_cols = readonly_cols;
+    sheet_params.fixed_row_col = fixed_row_col;
+    G_sheet_params.valueRenderer = update_renderer();
+    
+
+    // FIXFIX This check is temporary while not all recipes have fixed_row_col
+    var max_rows, max_cols;
+    if (sheet_params.fixed_row_col == undefined) {
+        max_rows = G_sheet_params.MAX_ROWS;
+        max_cols = G_sheet_params.MAX_COLS;
+    }
+    else {
+        max_rows = sheet_params.fixed_row_col[0] ? state.sheet_data.length : G_sheet_params.MAX_ROWS;
+        max_cols = sheet_params.fixed_row_col[1] ? state.sheet_data[0].length : G_sheet_params.MAX_COLS;
+    }
+    
+    //------------------------------------------------------------------------------------
+    // Make spreadsheet
+    //
+    spreadsheet = new Handsontable(sheet, {
+      data: sheet_data,
+      colHeaders: column_headers,
+      contextMenu: false,
+      
+      currentRowClassName: 'currentRow',
+      currentColClassName: 'currentCol',
+      outsideClickDeselects: false,
+
+      maxRows: max_rows,
+      maxCols: max_cols,
+      
+      beforeRender: function() { G_sheet_params.data_is_valid = true; },
+      
+      // Example of how to embed default information in rows...
+      cells: function (row, col, prop) {
+        var cellProperties = {};
+        cellProperties.renderer = G_sheet_params.valueRenderer;
+        return cellProperties;
+      },
+    });
+    
+    // This timeout may fix a layout bug, along with adding padding of 5px to #sheet...
+    setTimeout(function() { spreadsheet.render(); }, 1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------
+//
+// ACE Code Editor
+//
+
+
+function make_editor(code) {
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/dawn");
+    editor.getSession().setMode("ace/mode/javascript");
+    editor.getSession().setMode("ace/mode/html");
+    //editor.session.$worker.call("changeOptions", [{asi: true}]);
+
+    editor.setValue(code);
+    // move cursor to the start
+    editor.setValue(editor.getValue(), 1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------
+// onload -- turn state into webpage
+// Edit mode and recipe mode: use the recipe to fill in the information
+// Gallery mode: also has the actual image itself
+//
+(function() {
+    $('.selectpicker').selectpicker();
+    var sheet = $("#sheet")[0];
+
+    // FIXFIX What if I can see an SVG?    
+    $(".downloadsvg").hide();
+    $(".downloadpng").hide();
+    $(".openhtml").hide();
+    
+    var is_fork = document.location.href.endsWith("#fork");
+    var is_new = document.location.href.endsWith("#new");
+    var is_signedin = document.location.href.endsWith("#signedin");
+    
+    //------------------------------------------------------------------------------------
+    // First set up state if I have to
+    //
+    if (MODE == "EDIT" && (is_fork || is_signedin)) {
+        var state_meta = get_state_local();
+        state = state_meta.state; meta = state_meta.meta;
+        console.log("forked/signedin recipe id", recipe_id, "is_fork:", is_fork, "is_signedin", is_signedin);
+    }
+    
+    // if you fork, then you own the new recipe
+    if (is_recipe_owner === 1 || is_logged_in === 0 || is_fork) {
+        $(".likerecipe").hide();
+    }
+    else if (is_liked_recipe === 1) {
+        $(".likerecipe .normal>span:last").text("unlike this recipe");
+    }
+    else {
+        $(".likerecipe .normal>span:last").text("like this recipe");
+    }
+    
+    // This must be after meta/state, but before forked_recipe_id (which relies on this)
+    $(".recipe_title").text(meta.recipe_title);
+    $(".recipe_description").text(meta.recipe_description);
+    // Even though you don't see it in recipe mode, this is used to hold the defining version.
+    $("#saverecipe_modal .recipe_title").val(meta.recipe_title);
+    $("#saverecipe_modal .recipe_description").val(meta.recipe_description);
+    
+    // In recipe mode, the first thing you see is the "default" image, which has the id of the recipe. 
+    // FIXFIX testing this works in edit mode too
+    if (recipe_id !== '') { 
+        var s3_svg_url = S3_URL_DN+"/"+recipe_id+".svg";
+        $(".imageholder").prepend('<object data="'+s3_svg_url+'" type="image/svg+xml" />')
+        $(".imageholder").show();
+    }
+    else {
+        recipe_id = get_recipe_id();
+    }
+
+    //------------------------------------------------------------------------------------
+    // Edit mode vs Recipe mode
+    //
+    if (MODE == "EDIT") {
+        $(".editrecipe").hide();
+        
+        _.each(state.recipe_params, function(el, ix, li) {
+            add_param_edit(el[0], el[1], el[2]);
+        });
+        
+        if ($(".edit .recipe_title").text() == '') {
+            $(".edit .recipe_title").html('<span style="border:1px solid #ddd;color:#777;padding:5px;">Untitled</span>');
+        }
+        if ($(".edit .recipe_description").text() == '') {
+            $(".edit .recipe_description").html('<span style="border:1px solid #ddd;color:#777;padding:5px;">No description</span>');
+        }
+        
+        var p = state.sheet_params;
+        console.log(state.sheet_data, p.column_headers, p.column_types, 
+                    p.readonly_cols, p.fixed_row_col);
+        make_spreadsheet(state.sheet_data, p.column_headers, p.column_types, 
+                         p.readonly_cols, p.fixed_row_col);
+        
+        make_editor(state.code);
+        console.log(state.recipe_params);
+    }
+    else if (MODE == "RECIPE") {
+        $(".saverecipe").hide();
+        
+        // do not allow the user to change the recipe type (e.g. html -> svg)
+        $(".recipetype").hide();
+        $("#editor_holder").hide();
+                
+        for (var i=0; i<state.recipe_params.length; i++) {
+            add_param_recipe(state.recipe_params[i]);
+        }
+        
+        console.log("meta", meta);
+        console.log("state", state);
+
+
+        $(".heart").html(get_svg_heart("#CC333F", 0.06, true) + '<span>{{num_likes}}</span>');
+        
+        var p = state.sheet_params;
+        make_spreadsheet(state.sheet_data, p.column_headers,
+                         p.column_types, p.readonly_cols, p.fixed_row_col);
+        make_editor(state.code);
+        
+        $(".editrecipe").show();
+        if (is_recipe_owner === 1) {
+            $(".editrecipe").text("edit this recipe");
+            $(".editrecipe").attr("href", "/edit/"+meta.recipe_id);
+        }
+        else {
+            $(".editrecipe").text("fork this recipe");
+            var forked_recipe_id = get_recipe_id(true); // a brand new one
+            $(".editrecipe").attr("href", "/edit/"+forked_recipe_id+"#fork");
+            
+            set_state_local(forked_recipe_id);
+        }
+    }
+    
+    console.log("cookie", document.cookie);
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

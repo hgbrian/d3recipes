@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<title>Violin plot example</title>
+<meta charset="utf-8">
+<script type="text/javascript" language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" language="javascript" src="http://d3js.org/d3.v3.min.js"></script>        	
+
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+.area{
+  shape-rendering: geometricPrecision;
+  fill: #cc00cc !important;
+}
+.boxplot{
+  shape-rendering: crispEdges;
+  fill: none;
+  stroke: black;
+  stroke-width: 1px;
+}
+.boxplot.fill{
+  fill: black;
+}
+.boxplot.mean, .boxplot.median{
+  fill: white;
+  stroke: white;
+}
+.boxplot.mean{
+  shape-rendering: geometricPrecision;
+}
+.violin{
+  shape-rendering: geometricPrecision;
+  fill: none !important;
+  stroke: #777;
+  stroke-width: 1px;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1px;
+  color-rendering: optimizeQuality !important;
+  shape-rendering: crispEdges !important;
+  text-rendering: geometricPrecision !important; 
+
+}
+</style>
+
+    </head>
+<body>
+<div id="svgElement1"></div>
+<div id="svgElement2"></div>    
+</body>
+
+
+<script>
+
+var Gresults = [[4.0663933509933633, -0.6193206868184526, 1.8338621180744081, 1.9286594263359274],
+             [4.263933509933633, 0.6193206868184526, 1.8338621180744081, 1.9286594263359274],
+             [4.363933509933633, 0.3193206868184526, 1.8338621180744081, 2.9286594263359274],
+             [4.463933509933633, 0.4193206868184526, 1.5338621180744081, 2.3286594263359274],
+             [4.263933509933633, 0.5193206868184526, 2.6338621180744081, 2.4286594263359274],
+             [4.163933509933633, -0.4193206868184526, 2.3338621180744081, 2.2286594263359274],
+             [4.663933509933633, 0.6193206868184526, 2.8338621180744081, 1.9286594263359274]
+            ];
+
+var results = Gresults[0].map(function(col, i) { 
+  return Gresults.map(function(row) { 
+    return row[i] 
+  })
+});
+
+
+var margin={top:10, bottom:30, left:30, right:10};
+var height=300;
+var boxWidth=200;
+var width=boxWidth * results.length + 100;
+var boxSpacing=10;
+
+
+
+//-----------------------
+// Work out correct range
+//
+var max_result = Number.NEGATIVE_INFINITY;
+var min_result = Number.POSITIVE_INFINITY;
+function getMaxOfArray(numArray) {
+  return Math.max.apply(null, numArray);
+}
+var max_domain;
+for (var i=0; i<results.length; i++) {
+    console.log(results[i]);    
+    console.log(getMaxOfArray(results[i]));
+    max_result = Math.max(getMaxOfArray(results[i]), max_result);
+    min_result = Math.min(getMaxOfArray(results[i]), min_result);
+}
+console.log(min_result, max_result);
+
+if (-min_result > max_result) {
+    max_domain = -min_result;
+}
+else {
+    max_domain = max_result;
+}
+
+var domain=[-Math.ceil(max_domain), Math.ceil(max_domain)];
+
+
+function addViolin(svg, results, height, width, domain, imposeMax, violinColor){
+    var data = d3.layout.histogram()
+                    .bins(resolution)
+                    .frequency(0)
+                    (results);
+
+    var y = d3.scale.linear()
+                .range([width/2, 0])
+                .domain([0, Math.max(imposeMax, d3.max(data, function(d) { return d.y; }))]);
+
+    var x = d3.scale.linear()
+                .range([height, 0])
+                .domain(domain)
+                .nice();
+
+
+    var area = d3.svg.area()
+        .interpolate(interpolation)
+        .x(function(d) {
+               if(interpolation=="step-before")
+                    return x(d.x+d.dx/2)
+               return x(d.x);
+            })
+        .y0(width/2)
+        .y1(function(d) { return y(d.y); });
+
+    var line=d3.svg.line()
+        .interpolate(interpolation)
+        .x(function(d) {
+               if(interpolation=="step-before")
+                    return x(d.x+d.dx/2)
+               return x(d.x);
+            })
+        .y(function(d) { return y(d.y); });
+
+    var gPlus=svg.append("g")
+    var gMinus=svg.append("g")
+
+    gPlus.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area)
+      .style("fill", violinColor);
+
+    gPlus.append("path")
+      .datum(data)
+      .attr("class", "violin")
+      .attr("d", line)
+      .style("stroke", violinColor);
+
+    gMinus.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area)
+      .style("fill", violinColor);
+
+    gMinus.append("path")
+      .datum(data)
+      .attr("class", "violin")
+      .attr("d", line)
+      .style("stroke", violinColor);
+
+    var x=width;
+
+    gPlus.attr("transform", "rotate(90,0,0)  translate(0,-"+width+")");//translate(0,-200)");
+    gMinus.attr("transform", "rotate(90,0,0) scale(1,-1)");
+}
+
+
+function addBoxPlot(svg, results, height, width, domain, boxPlotWidth, boxColor, boxInsideColor){
+    var y = d3.scale.linear()
+                .range([height, 0])
+                .domain(domain);
+
+    var x = d3.scale.linear()
+                .range([0, width])
+
+    var left=0.5-boxPlotWidth/2;
+    var right=0.5+boxPlotWidth/2;
+
+    var probs=[0.05,0.25,0.5,0.75,0.95];
+    for(var i=0; i<probs.length; i++){
+        probs[i]=y(d3.quantile(results, probs[i]))
+    }
+
+    svg.append("rect")
+        .attr("class", "boxplot fill")
+        .attr("x", x(left))
+        .attr("width", x(right)-x(left))
+        .attr("y", probs[3])
+        .attr("height", -probs[3]+probs[1])
+        .style("fill", boxColor);
+
+    var iS=[0,2,4];
+    var iSclass=["","median",""];
+    var iSColor=[boxColor, boxInsideColor, boxColor]
+    for(var i=0; i<iS.length; i++){
+        svg.append("line")
+            .attr("class", "boxplot "+iSclass[i])
+            .attr("x1", x(left))
+            .attr("x2", x(right))
+            .attr("y1", probs[iS[i]])
+            .attr("y2", probs[iS[i]])
+            .style("fill", iSColor[i])
+            .style("stroke", iSColor[i]);
+    }
+
+    var iS=[[0,1],[3,4]];
+    for(var i=0; i<iS.length; i++){
+        svg.append("line")
+            .attr("class", "boxplot")
+            .attr("x1", x(0.5))
+            .attr("x2", x(0.5))
+            .attr("y1", probs[iS[i][0]])
+            .attr("y2", probs[iS[i][1]])
+            .style("stroke", boxColor);
+    }
+
+    svg.append("rect")
+        .attr("class", "boxplot")
+        .attr("x", x(left))
+        .attr("width", x(right)-x(left))
+        .attr("y", probs[3])
+        .attr("height", -probs[3]+probs[1])
+        .style("stroke", boxColor);
+
+    svg.append("circle")
+        .attr("class", "boxplot mean")
+        .attr("cx", x(0.5))
+        .attr("cy", y(d3.mean(results)))
+        .attr("r", x(boxPlotWidth/5))
+        .style("fill", boxInsideColor)
+        .style("stroke", 'None');
+
+    svg.append("circle")
+        .attr("class", "boxplot mean")
+        .attr("cx", x(0.5))
+        .attr("cy", y(d3.mean(results)))
+        .attr("r", x(boxPlotWidth/10))
+        .style("fill", boxColor)
+        .style("stroke", 'None');
+}
+
+var resolution=10;
+var d3ObjId="svgElement1";
+var interpolation='step-before';
+
+var y = d3.scale.linear()
+            .range([height-margin.bottom, margin.top])
+            .domain(domain);
+
+var yAxis = d3.svg.axis()
+                .scale(y)
+                .ticks(5)
+                .orient("left")
+                .tickSize(5,0,5);
+
+
+/*
+var svg = d3.select("#"+d3ObjId)
+            .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+svg.append("line")
+    .attr("class", "boxplot")
+    .attr("x1", margin.left)
+    .attr("x2", width-margin.right)
+    .attr("y1", y(0))
+    .attr("y2", y(0));
+
+for(var i=0; i<results.length; i++){
+    results[i]=results[i].sort(d3.ascending)
+    var g=svg.append("g").attr("transform", "translate("+(i*(boxWidth+boxSpacing)+margin.left)+",0)");
+    addViolin(g, results[i], height, boxWidth, domain, 0.25, "#cccccc");
+    addBoxPlot(g, results[i], height, boxWidth, domain, .15, "black", "white");
+
+}
+
+svg.append("g")
+    .attr('class', 'axis')
+    .attr("transform", "translate("+margin.left+",0)")
+    .call(yAxis);
+*/
+
+var d3ObjId="svgElement2";
+var interpolation='basis';
+
+var svg = d3.select("#"+d3ObjId)
+            .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+svg.append("line")
+    .attr("class", "boxplot")
+    .attr("x1", margin.left)
+    .attr("x2", width-margin.right)
+    .attr("y1", y(0))
+    .attr("y2", y(0));
+
+for(var i=0; i<results.length; i++){
+    results[i]=results[i].sort(d3.ascending)
+    var g=svg.append("g").attr("transform", "translate("+(i*(boxWidth+boxSpacing)+margin.left)+",0)");
+    addViolin(g, results[i], height, boxWidth, domain, 0.25, "#cccccc");
+    addBoxPlot(g, results[i], height, boxWidth, domain, .15, "black", "white");
+}
+
+svg.append("g")
+    .attr('class', 'axis')
+    .attr("transform", "translate("+margin.left+",0)")
+    .call(yAxis);
+
+</script>
+</html>
